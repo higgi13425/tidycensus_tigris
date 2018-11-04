@@ -7,9 +7,11 @@ library(tigris)
 library(tidyverse)
 library(ggplot2)
 library(sf)
+library(plotly)
 
 census_api_key(api_key)
 Sys.getenv("CENSUS_API_KEY")
+options(tigris_use_cache = TRUE)
 
 wash_value <- get_acs(geography = "tract",
                       state = "MI",
@@ -24,14 +26,25 @@ state_income <- get_acs(geography = "state", variables = "B19013_001")
 head(state_income)
 
 #median household income
-mi_income <- get_acs(geography = "tract",
+mi_income <- get_acs(geography = "county",
                      variables = "B19013_001",
                      state = "MI",
                      geometry = TRUE)
+
 head(mi_income)
 #plot with ggplot
-ggplot(mi_income, aes(fill = estimate)) + 
-  geom_sf()
+ggplot(mi_income, aes(fill = estimate, color=estimate)) + 
+  geom_sf() +
+  scale_fill_viridis_c() + #fill scale
+  scale_color_viridis_c(guide=FALSE) + #only one legend
+  #colors lines between counties
+  theme_minimal(base_size = 10) + #base font size
+  coord_sf(datum = NA) + #turns off lat/long grid
+  labs(title = "Household Income in Michigan by County",
+       subtitle = "Average value, 2016 ACS data",
+       fill = 'Income in Dollars')
+
+ggplotly(tooltip = "NAME")
 
 wash_income <- get_acs(geography = "tract",
                        variables = c(hholdincome ="B19013_001"),
@@ -43,9 +56,10 @@ wash_income <- get_acs(geography = "tract",
 head(wash_income)
 
 #plot with ggplot
-ggplot(wash_income, aes(fill = estimate)) + 
-  geom_sf()
-
+ggplot(wash_income, aes(fill = estimate, color=estimate)) + 
+  geom_sf() +
+  scale_fill_viridis_c() +
+  scale_color_viridis_c()
 
 #wide data
 # Return county data in wide format
